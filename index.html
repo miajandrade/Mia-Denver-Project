@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Upcoming events in Denver, CO — concerts, sports, theater, festivals, and more.">
+  <title>Denver Events</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="site-logo">Denver<span>Events</span></div>
+      <p class="site-tagline">Your guide to what's happening in the Mile High City</p>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <section class="filter-bar" aria-label="Event filters">
+      <div class="filter-section">
+        <label>Category</label>
+        <div class="category-pills" id="category-filters">
+          <button class="category-pill active" data-category="All">All</button>
+          <button class="category-pill" data-category="Music">Music</button>
+          <button class="category-pill" data-category="Sports">Sports</button>
+          <button class="category-pill" data-category="Arts &amp; Theatre">Arts &amp; Theatre</button>
+          <button class="category-pill" data-category="Family">Family</button>
+          <button class="category-pill" data-category="Film">Film</button>
+          <button class="category-pill" data-category="Community">Community</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <label>Date Range</label>
+        <div class="date-filters">
+          <div class="date-input-group">
+            <span>From</span>
+            <input type="date" id="date-from" aria-label="Start date">
+          </div>
+          <span class="date-separator">–</span>
+          <div class="date-input-group">
+            <span>To</span>
+            <input type="date" id="date-to" aria-label="End date">
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="events-header">
+      <h2>Upcoming Events</h2>
+      <span class="event-count" id="event-count">Loading…</span>
+    </div>
+    <p class="filter-stats" id="filter-stats"></p>
+
+    <div class="events-grid" id="events-grid" role="list" aria-label="Events"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Powered by the
+      <a href="https://developer.ticketmaster.com" target="_blank" rel="noopener noreferrer">Ticketmaster Discovery API</a>
+      · Static site · No backend
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
