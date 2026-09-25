@@ -38,16 +38,16 @@ denver-events/
 - **Response shape**: `_embedded.events[]` — each event has `name`, `dates.start.localDate`, `dates.start.localTime`, `_embedded.venues[0].name`, `classifications[0].segment.name`, `images[]`, `url`
 - **Docs**: https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/
 
-### PredictHQ (active)
+### PredictHQ (**token expired — broken as of Sep 2026**)
 - **Endpoint**: `https://api.predicthq.com/v1/events/`
-- **Auth**: Bearer token — **active and configured** in `app.js` as `PREDICTHQ_TOKEN`
+- **Auth**: Bearer token — configured in `app.js` as `PREDICTHQ_TOKEN`. **Token `R2-fr5jpUT0t9Oy-...` is returning `{"error":"unauthorized"}` — needs to be replaced with a fresh token from the PredictHQ dashboard.**
 - **Query params**: `location_around.origin=39.7392,-104.9903`, `location_around.offset=25mi`, `country=US`, `state=active`, `sort=start`, `limit=50`, `start.gte` (dynamic today's date)
 - **Response shape**: `results[]` — each has `title`, `start_local`, `category`, `geo.address`, `start_local`
 - **Category mapping**: concerts→Music, performing-arts→Arts & Theatre, sports→Sports, family→Family, film→Film, festivals/community/expos/conferences/food-drink-festival→Community
 - **Coverage**: ~5,000 Denver-area events — community events, festivals, conferences, food markets, sports
 - **Docs**: https://docs.predicthq.com/
 
-### Lu.ma (active)
+### Lu.ma (**CORS-blocked in browser — non-functional on deployed site**)
 - **Endpoint**: `https://api.lu.ma/discover/get-paginated-events` — unauthenticated public API (same one Lu.ma's website uses for logged-out visitors)
 - **Auth**: None required
 - **Query params**: `pagination_limit=50`, `geo_latitude=39.7392`, `geo_longitude=-104.9903`
@@ -55,6 +55,7 @@ denver-events/
 - **Category**: all Lu.ma events normalized to `Community` (no structured category in API response)
 - **Date/time conversion**: `start_at` (UTC) converted to local date + time using `Intl`/`toLocaleDateString`+`toLocaleTimeString` with the event's `timezone` field
 - **Coverage**: professional meetups, networking events, workshops — strong complement to Ticketmaster/PredictHQ
+- **⚠️ CORS restriction**: Lu.ma's API only returns `access-control-allow-origin: https://lu.ma` — all other origins are blocked. The fetch silently fails in the browser (caught by `Promise.allSettled`). The code remains in `app.js` but produces zero events on the deployed site. To fix: set up a Cloudflare Worker proxy (free tier) or a scheduled GitHub Action that pre-fetches Lu.ma events to a static `luma-events.json` file. All public free CORS proxies (corsproxy.io, allorigins.win, etc.) tested in Sep 2026 are dead or require paid auth.
 
 ## Strict Denver-Only Filtering (added May 2026)
 All three API sources apply two layers of filtering to ensure only genuine Denver events are shown:
