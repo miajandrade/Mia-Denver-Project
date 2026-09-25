@@ -47,8 +47,17 @@ denver-events/
 - **Coverage**: ~5,000 Denver-area events — community events, festivals, conferences, food markets, sports
 - **Docs**: https://docs.predicthq.com/
 
+### Lu.ma (active)
+- **Endpoint**: `https://api.lu.ma/discover/get-paginated-events` — unauthenticated public API (same one Lu.ma's website uses for logged-out visitors)
+- **Auth**: None required
+- **Query params**: `pagination_limit=50`, `geo_latitude=39.7392`, `geo_longitude=-104.9903`
+- **Response shape**: `{ entries[], has_more, next_cursor }` — each entry has an `event` object with `name`, `start_at` (UTC ISO 8601), `timezone` (IANA, e.g. `America/Denver`), `url` (short slug — prepend `https://lu.ma/`), `cover_url` (image), `geo_address_info.city`, `geo_address_info.city_state`, `geo_address_info.region`, `geo_address_info.country_code`
+- **Category**: all Lu.ma events normalized to `Community` (no structured category in API response)
+- **Date/time conversion**: `start_at` (UTC) converted to local date + time using `Intl`/`toLocaleDateString`+`toLocaleTimeString` with the event's `timezone` field
+- **Coverage**: professional meetups, networking events, workshops — strong complement to Ticketmaster/PredictHQ
+
 ## Strict Denver-Only Filtering (added May 2026)
-Both API sources apply two layers of filtering to ensure only genuine Denver events are shown:
+All three API sources apply two layers of filtering to ensure only genuine Denver events are shown:
 
 **Ticketmaster**
 - API params already include `city=Denver&stateCode=CO&countryCode=US`
@@ -58,9 +67,13 @@ Both API sources apply two layers of filtering to ensure only genuine Denver eve
 - Radius tightened from `25mi` → `10mi` around Denver lat/lon `39.7392,-104.9903`
 - Post-fetch JS filter: drops any raw event whose combined `formatted_address + locality + region` does not include `"Denver"` or `"CO"`
 
-**Deduplication note**: Ticketmaster events win on name+date collision (richer data).
+**Lu.ma**
+- Geo params request events near `39.7392,-104.9903` (returns ~25 mi radius)
+- Post-fetch JS filter: drops any raw entry where `event.geo_address_info.city` (lowercased) ≠ `"denver"`
 
-**Filter stats display**: After each load, a `#filter-stats` element below the events header shows `"X of Y fetched events matched Denver"` where X = geo-passed count (pre-dedup), Y = total raw events from both APIs. The existing `#event-count` badge continues to show the final count after category/date filtering.
+**Deduplication priority**: Ticketmaster > PredictHQ > Lu.ma on name+date collision (TM has richest data). `mergeAndDeduplicate()` now accepts rest args (`...sources`) so all three arrays are passed in priority order.
+
+**Filter stats display**: After each load, a `#filter-stats` element below the events header shows `"X of Y fetched events matched Denver"` where X = geo-passed count (pre-dedup), Y = total raw events from all three APIs. The existing `#event-count` badge continues to show the final count after category/date filtering.
 
 ---
 
@@ -73,9 +86,10 @@ Both API sources apply two layers of filtering to ensure only genuine Denver eve
 - [x] Single-page app: `index.html` + `style.css` + `app.js`
 - [x] Ticketmaster Discovery API integration
 - [x] PredictHQ API integration — fetched in parallel with Ticketmaster via `Promise.allSettled`
-- [x] Dual-source merge: events sorted by date, Ticketmaster wins on name+date duplicates
+- [x] Lu.ma API integration — fetched in parallel via `Promise.allSettled`
+- [x] Three-source merge: events sorted by date, Ticketmaster > PredictHQ > Lu.ma on name+date duplicates
 - [x] Deduplication: normalized name (lowercase, alphanumeric, first 40 chars) + date as key
-- [x] Source badge on each card: "Ticketmaster" (navy) or "PredictHQ" (purple)
+- [x] Source badge on each card: "Ticketmaster", "PredictHQ", or "Lu.ma"
 - [x] Event card grid (responsive 1–3 col) — image, name, date/time, venue, category badge, source badge
 - [x] Category filter pills: Music, Sports, Arts & Theatre, Family, Film, Community
 - [x] Date range filter — client-side From/To inputs

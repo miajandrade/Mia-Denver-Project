@@ -1,8 +1,9 @@
 const TICKETMASTER_API_KEY = 'h7RuuPhK1lwRyRqciogdVfxmAxwTTLIJ';
 const PREDICTHQ_TOKEN     = 'R2-fr5jpUT0t9Oy-_mS66OqNlWoUnWFsrnT8tUZf';
 
-const TM_BASE  = 'https://app.ticketmaster.com/discovery/v2/events.json';
-const PHQ_BASE = 'https://api.predicthq.com/v1/events/';
+const TM_BASE   = 'https://app.ticketmaster.com/discovery/v2/events.json';
+const PHQ_BASE  = 'https://api.predicthq.com/v1/events/';
+const LUMA_BASE = 'https://api.lu.ma/discover/get-paginated-events';
 const PAGE_SIZE = 50;
 
 // ── Category config ───────────────────────────────────
@@ -161,8 +162,51 @@ function normalizePHQ(raw) {
   };
 }
 
+// ── Lu.ma ─────────────────────────────────────────────
+
+async function fetchLuma() {
+  const params = new URLSearchParams({
+    pagination_limit: String(PAGE_SIZE),
+    geo_latitude:  '39.7392',
+    geo_longitude: '-104.9903',
+  });
+  const res = await fetch(`${LUMA_BASE}?${params}`);
+  if (!res.ok) throw new Error(`Lu.ma HTTP ${res.status}`);
+  const data = await res.json();
+  const raw = data.entries ?? [];
+  const filtered = raw.filter(entry => {
+    const city = (entry.event?.geo_address_info?.city ?? '').toLowerCase();
+    return city === 'denver';
+  });
+  return { events: filtered.map(normalizeLuma), rawCount: raw.length };
+}
+
+function normalizeLuma(entry) {
+  const ev = entry.event;
+  const tz = ev.timezone || 'America/Denver';
+  const d  = new Date(ev.start_at);
+
+  const localDate = d.toLocaleDateString('en-CA', { timeZone: tz });
+  const localTime = d.toLocaleTimeString('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit' }) + ':00';
+
+  const geo       = ev.geo_address_info || {};
+  const venueName = geo.city_state || geo.city || 'Denver, CO';
+  const ticketUrl = ev.url ? `https://lu.ma/${ev.url}` : null;
+
+  return {
+    name:      ev.name || 'Unnamed Event',
+    localDate,
+    localTime,
+    venueName,
+    category:  'Community',
+    image:     ev.cover_url || null,
+    ticketUrl,
+    source:    'Lu.ma',
+  };
+}
+
 // ── Deduplication ─────────────────────────────────────
-// Ticketmaster events win when name+date collide (richer data: image, ticketUrl)
+// Priority: Ticketmaster > PredictHQ > Lu.ma on name+date collision
 
 function dedupKey(event) {
   const nameKey = (event.name || '')
@@ -172,10 +216,14 @@ function dedupKey(event) {
   return `${nameKey}|${event.localDate ?? ''}`;
 }
 
-function mergeAndDeduplicate(tmEvents, phqEvents) {
+function mergeAndDeduplicate(...sources) {
   const seen = new Map();
-  for (const e of tmEvents)  { const k = dedupKey(e); if (!seen.has(k)) seen.set(k, e); }
-  for (const e of phqEvents) { const k = dedupKey(e); if (!seen.has(k)) seen.set(k, e); }
+  for (const events of sources) {
+    for (const e of events) {
+      const k = dedupKey(e);
+      if (!seen.has(k)) seen.set(k, e);
+    }
+  }
   return [...seen.values()].sort((a, b) => {
     const da = a.localDate ?? '9999', db = b.localDate ?? '9999';
     return da < db ? -1 : da > db ? 1 : 0;
@@ -241,7 +289,9 @@ function renderEvents(events) {
 
   grid.innerHTML = events.map(event => {
     const badgeClass  = BADGE_CLASS[event.category] ?? 'badge-other';
-    const sourceClass = event.source === 'Ticketmaster' ? 'source-tm' : 'source-phq';
+    const sourceClass = event.source === 'Ticketmaster' ? 'source-tm'
+                     : event.source === 'Lu.ma'         ? 'source-luma'
+                     : 'source-phq';
     const dateStr     = formatDate(event.localDate, event.localTime);
     const href        = event.ticketUrl ? esc(event.ticketUrl) : '#';
 
@@ -324,26 +374,30 @@ async function init() {
     b.classList.toggle('active', b.dataset.category === 'All');
   });
 
-  const [tmResult, phqResult] = await Promise.allSettled([
+  const [tmResult, phqResult, lumaResult] = await Promise.allSettled([
     fetchTicketmaster(),
     fetchPredictHQ(),
+    fetchLuma(),
   ]);
 
-  const tmData    = tmResult.status  === 'fulfilled' ? tmResult.value  : { events: [], rawCount: 0 };
-  const phqData   = phqResult.status === 'fulfilled' ? phqResult.value : { events: [], rawCount: 0 };
-  const tmEvents  = tmData.events;
-  const phqEvents = phqData.events;
+  const tmData   = tmResult.status   === 'fulfilled' ? tmResult.value   : { events: [], rawCount: 0 };
+  const phqData  = phqResult.status  === 'fulfilled' ? phqResult.value  : { events: [], rawCount: 0 };
+  const lumaData = lumaResult.status === 'fulfilled' ? lumaResult.value : { events: [], rawCount: 0 };
 
-  if (tmResult.status  === 'rejected') console.warn('[Ticketmaster]', tmResult.reason);
-  if (phqResult.status === 'rejected') console.warn('[PredictHQ]',   phqResult.reason);
+  if (tmResult.status   === 'rejected') console.warn('[Ticketmaster]', tmResult.reason);
+  if (phqResult.status  === 'rejected') console.warn('[PredictHQ]',   phqResult.reason);
+  if (lumaResult.status === 'rejected') console.warn('[Lu.ma]',       lumaResult.reason);
 
-  if (tmEvents.length === 0 && phqEvents.length === 0) {
-    renderError('Both event sources failed to load. Check your connection and try again.');
+  if (tmData.events.length === 0 && phqData.events.length === 0 && lumaData.events.length === 0) {
+    renderError('All event sources failed to load. Check your connection and try again.');
     return;
   }
 
-  allEvents = mergeAndDeduplicate(tmEvents, phqEvents);
-  setFilterStats(tmData.rawCount + phqData.rawCount, tmEvents.length + phqEvents.length);
+  allEvents = mergeAndDeduplicate(tmData.events, phqData.events, lumaData.events);
+  setFilterStats(
+    tmData.rawCount + phqData.rawCount + lumaData.rawCount,
+    tmData.events.length + phqData.events.length + lumaData.events.length,
+  );
   applyFilters();
 }
 

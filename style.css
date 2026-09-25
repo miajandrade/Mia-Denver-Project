@@ -367,6 +367,12 @@ input[type="date"]:focus {
   border: 1px solid rgba(255, 179, 198, 0.2);
 }
 
+.source-luma {
+  background: rgba(255, 179, 198, 0.1);
+  color: var(--blush);
+  border: 1px solid rgba(255, 179, 198, 0.2);
+}
+
 .event-card__body {
   padding: 14px 18px 22px;
   flex: 1;
