@@ -167,35 +167,42 @@ async function fetchLuma() {
   // Reads from luma-events.json, pre-fetched daily by GitHub Actions.
   // Lu.ma's API is CORS-restricted to https://lu.ma, making direct browser
   // fetches impossible from GitHub Pages.
-  const res = await fetch('luma-events.json');
+  const res = await fetch('./luma-events.json');
   if (!res.ok) throw new Error(`Lu.ma cache HTTP ${res.status}`);
   const data = await res.json();
   const entries = data.entries ?? [];
-  return { events: entries.map(normalizeLuma), rawCount: data.rawCount ?? entries.length };
+  const events = entries.map(normalizeLuma).filter(Boolean);
+  console.log(`[Lu.ma] loaded ${events.length} events (cache dated ${data.fetchedAt ?? 'unknown'})`);
+  return { events, rawCount: data.rawCount ?? entries.length };
 }
 
 function normalizeLuma(entry) {
-  const ev = entry.event;
-  const tz = ev.timezone || 'America/Denver';
-  const d  = new Date(ev.start_at);
+  try {
+    const ev = entry.event;
+    const tz = ev.timezone || 'America/Denver';
+    const d  = new Date(ev.start_at);
 
-  const localDate = d.toLocaleDateString('en-CA', { timeZone: tz });
-  const localTime = d.toLocaleTimeString('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit' }) + ':00';
+    const localDate = d.toLocaleDateString('en-CA', { timeZone: tz });
+    const localTime = d.toLocaleTimeString('en-GB', { timeZone: tz, hour: '2-digit', minute: '2-digit' }) + ':00';
 
-  const geo       = ev.geo_address_info || {};
-  const venueName = geo.city_state || geo.city || 'Denver, CO';
-  const ticketUrl = ev.url ? `https://lu.ma/${ev.url}` : null;
+    const geo       = ev.geo_address_info || {};
+    const venueName = geo.city_state || geo.city || 'Denver, CO';
+    const ticketUrl = ev.url ? `https://lu.ma/${ev.url}` : null;
 
-  return {
-    name:      ev.name || 'Unnamed Event',
-    localDate,
-    localTime,
-    venueName,
-    category:  'Community',
-    image:     ev.cover_url || null,
-    ticketUrl,
-    source:    'Lu.ma',
-  };
+    return {
+      name:      ev.name || 'Unnamed Event',
+      localDate,
+      localTime,
+      venueName,
+      category:  'Community',
+      image:     ev.cover_url || null,
+      ticketUrl,
+      source:    'Lu.ma',
+    };
+  } catch (e) {
+    console.warn('[Lu.ma] normalizeLuma error:', e, entry);
+    return null;
+  }
 }
 
 // ── Deduplication ─────────────────────────────────────
