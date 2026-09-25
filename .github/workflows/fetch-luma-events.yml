@@ -17,19 +17,22 @@ jobs:
 
       - name: Fetch and filter Denver events from Lu.ma
         run: |
+          # Lu.ma returns 0 results without a browser-like Referer header.
+          # curl with full headers mirrors what worked in local testing.
+          curl -s \
+            -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' \
+            -H 'Accept: application/json' \
+            -H 'Accept-Language: en-US,en;q=0.9' \
+            -H 'Referer: https://lu.ma/discover' \
+            'https://api.lu.ma/discover/get-paginated-events?pagination_limit=50&geo_latitude=39.7392&geo_longitude=-104.9903' \
+            -o /tmp/luma_raw.json
+
           python3 << 'EOF'
-          import urllib.request, urllib.parse, json
+          import json
           from datetime import datetime, timezone
 
-          url = 'https://api.lu.ma/discover/get-paginated-events?' + urllib.parse.urlencode({
-              'pagination_limit': '50',
-              'geo_latitude':     '39.7392',
-              'geo_longitude':    '-104.9903',
-          })
-
-          req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
-          with urllib.request.urlopen(req, timeout=20) as resp:
-              data = json.loads(resp.read().decode())
+          with open('/tmp/luma_raw.json') as f:
+              data = json.load(f)
 
           all_entries    = data.get('entries', [])
           denver_entries = [
