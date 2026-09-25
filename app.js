@@ -3,7 +3,6 @@ const PREDICTHQ_TOKEN     = 'Uj5-EwOJimhJiYHV3POwrJncoKlGcaB3Jl2nlLkt';
 
 const TM_BASE   = 'https://app.ticketmaster.com/discovery/v2/events.json';
 const PHQ_BASE  = 'https://api.predicthq.com/v1/events/';
-const LUMA_BASE = 'https://api.lu.ma/discover/get-paginated-events';
 const PAGE_SIZE = 50;
 
 // ── Category config ───────────────────────────────────
@@ -165,20 +164,14 @@ function normalizePHQ(raw) {
 // ── Lu.ma ─────────────────────────────────────────────
 
 async function fetchLuma() {
-  const params = new URLSearchParams({
-    pagination_limit: String(PAGE_SIZE),
-    geo_latitude:  '39.7392',
-    geo_longitude: '-104.9903',
-  });
-  const res = await fetch(`${LUMA_BASE}?${params}`);
-  if (!res.ok) throw new Error(`Lu.ma HTTP ${res.status}`);
+  // Reads from luma-events.json, pre-fetched daily by GitHub Actions.
+  // Lu.ma's API is CORS-restricted to https://lu.ma, making direct browser
+  // fetches impossible from GitHub Pages.
+  const res = await fetch('luma-events.json');
+  if (!res.ok) throw new Error(`Lu.ma cache HTTP ${res.status}`);
   const data = await res.json();
-  const raw = data.entries ?? [];
-  const filtered = raw.filter(entry => {
-    const city = (entry.event?.geo_address_info?.city ?? '').toLowerCase();
-    return city === 'denver';
-  });
-  return { events: filtered.map(normalizeLuma), rawCount: raw.length };
+  const entries = data.entries ?? [];
+  return { events: entries.map(normalizeLuma), rawCount: data.rawCount ?? entries.length };
 }
 
 function normalizeLuma(entry) {

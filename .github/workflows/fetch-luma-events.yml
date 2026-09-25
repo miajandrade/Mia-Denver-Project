@@ -1,0 +1,58 @@
+name: Fetch Lu.ma Denver Events
+
+on:
+  schedule:
+    - cron: '0 14 * * *'  # 8am MDT (UTC-6) / 7am MST (UTC-7)
+  workflow_dispatch:       # allow manual trigger from Actions tab
+
+permissions:
+  contents: write
+
+jobs:
+  fetch-luma:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch and filter Denver events from Lu.ma
+        run: |
+          python3 << 'EOF'
+          import urllib.request, urllib.parse, json
+          from datetime import datetime, timezone
+
+          url = 'https://api.lu.ma/discover/get-paginated-events?' + urllib.parse.urlencode({
+              'pagination_limit': '50',
+              'geo_latitude':     '39.7392',
+              'geo_longitude':    '-104.9903',
+          })
+
+          req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+          with urllib.request.urlopen(req, timeout=20) as resp:
+              data = json.loads(resp.read().decode())
+
+          all_entries    = data.get('entries', [])
+          denver_entries = [
+              e for e in all_entries
+              if (e.get('event', {}).get('geo_address_info') or {}).get('city', '').lower() == 'denver'
+          ]
+
+          output = {
+              'fetchedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
+              'rawCount':  len(all_entries),
+              'entries':   denver_entries,
+          }
+
+          with open('luma-events.json', 'w') as f:
+              json.dump(output, f, indent=2)
+
+          print(f"Saved {len(denver_entries)} Denver events (of {len(all_entries)} total fetched)")
+          EOF
+
+      - name: Commit and push if file changed
+        run: |
+          git config user.name  'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add luma-events.json
+          git diff --staged --quiet || git commit -m "chore: update Lu.ma Denver events [skip ci]"
+          git push

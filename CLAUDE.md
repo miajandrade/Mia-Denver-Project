@@ -47,15 +47,16 @@ denver-events/
 - **Coverage**: ~5,000 Denver-area events — community events, festivals, conferences, food markets, sports
 - **Docs**: https://docs.predicthq.com/
 
-### Lu.ma (**CORS-blocked in browser — non-functional on deployed site**)
-- **Endpoint**: `https://api.lu.ma/discover/get-paginated-events` — unauthenticated public API (same one Lu.ma's website uses for logged-out visitors)
-- **Auth**: None required
-- **Query params**: `pagination_limit=50`, `geo_latitude=39.7392`, `geo_longitude=-104.9903`
-- **Response shape**: `{ entries[], has_more, next_cursor }` — each entry has an `event` object with `name`, `start_at` (UTC ISO 8601), `timezone` (IANA, e.g. `America/Denver`), `url` (short slug — prepend `https://lu.ma/`), `cover_url` (image), `geo_address_info.city`, `geo_address_info.city_state`, `geo_address_info.region`, `geo_address_info.country_code`
-- **Category**: all Lu.ma events normalized to `Community` (no structured category in API response)
-- **Date/time conversion**: `start_at` (UTC) converted to local date + time using `Intl`/`toLocaleDateString`+`toLocaleTimeString` with the event's `timezone` field
-- **Coverage**: professional meetups, networking events, workshops — strong complement to Ticketmaster/PredictHQ
-- **⚠️ CORS restriction**: Lu.ma's API only returns `access-control-allow-origin: https://lu.ma` — all other origins are blocked. The fetch silently fails in the browser (caught by `Promise.allSettled`). The code remains in `app.js` but produces zero events on the deployed site. To fix: set up a Cloudflare Worker proxy (free tier) or a scheduled GitHub Action that pre-fetches Lu.ma events to a static `luma-events.json` file. All public free CORS proxies (corsproxy.io, allorigins.win, etc.) tested in Sep 2026 are dead or require paid auth.
+### Lu.ma (active — served from static cache)
+- **Direct API**: `https://api.lu.ma/discover/get-paginated-events` — unauthenticated, but CORS-restricted to `https://lu.ma` only; direct browser fetches from GitHub Pages are blocked
+- **How it works**: A GitHub Actions workflow (`.github/workflows/fetch-luma-events.yml`) fetches Lu.ma events server-side once daily and writes `luma-events.json` to the repo root. `app.js` reads that static file instead of calling the API directly, bypassing the CORS restriction entirely.
+- **Static cache file**: `luma-events.json` — shape: `{ fetchedAt, rawCount, entries[] }` where `entries` are already filtered to Denver-only (`geo_address_info.city === "denver"`)
+- **Schedule**: daily at 8am MDT (14:00 UTC) / 7am MST via cron `0 14 * * *`; also triggerable manually from the GitHub Actions tab (`workflow_dispatch`)
+- **Query params used by action**: `pagination_limit=50`, `geo_latitude=39.7392`, `geo_longitude=-104.9903`
+- **Response shape**: each entry has an `event` object with `name`, `start_at` (UTC ISO 8601), `timezone` (IANA), `url` (short slug — prepend `https://lu.ma/`), `cover_url` (image), `geo_address_info.city`, `geo_address_info.city_state`
+- **Category**: all Lu.ma events normalized to `Community`
+- **Date/time**: `start_at` (UTC) converted to local date + time via `Intl` using the event's `timezone` field
+- **Coverage**: professional meetups, networking events, workshops
 
 ## Strict Denver-Only Filtering (added May 2026)
 All three API sources apply two layers of filtering to ensure only genuine Denver events are shown:
@@ -87,7 +88,7 @@ All three API sources apply two layers of filtering to ensure only genuine Denve
 - [x] Single-page app: `index.html` + `style.css` + `app.js`
 - [x] Ticketmaster Discovery API integration
 - [x] PredictHQ API integration — fetched in parallel with Ticketmaster via `Promise.allSettled`
-- [x] Lu.ma API integration — fetched in parallel via `Promise.allSettled`
+- [x] Lu.ma integration via daily GitHub Action pre-fetch → `luma-events.json` (bypasses CORS restriction)
 - [x] Three-source merge: events sorted by date, Ticketmaster > PredictHQ > Lu.ma on name+date duplicates
 - [x] Deduplication: normalized name (lowercase, alphanumeric, first 40 chars) + date as key
 - [x] Source badge on each card: "Ticketmaster", "PredictHQ", or "Lu.ma"
