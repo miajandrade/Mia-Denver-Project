@@ -38,9 +38,9 @@ denver-events/
 - **Response shape**: `_embedded.events[]` — each event has `name`, `dates.start.localDate`, `dates.start.localTime`, `_embedded.venues[0].name`, `classifications[0].segment.name`, `images[]`, `url`
 - **Docs**: https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/
 
-### PredictHQ (**token expired — broken as of Sep 2026**)
+### PredictHQ (active)
 - **Endpoint**: `https://api.predicthq.com/v1/events/`
-- **Auth**: Bearer token — configured in `app.js` as `PREDICTHQ_TOKEN`. **Token `R2-fr5jpUT0t9Oy-...` is returning `{"error":"unauthorized"}` — needs to be replaced with a fresh token from the PredictHQ dashboard.**
+- **Auth**: Bearer token — **active and configured** in `app.js` as `PREDICTHQ_TOKEN`. Token replaced Sep 2026 after previous token expired.
 - **Query params**: `location_around.origin=39.7392,-104.9903`, `location_around.offset=25mi`, `country=US`, `state=active`, `sort=start`, `limit=50`, `start.gte` (dynamic today's date)
 - **Response shape**: `results[]` — each has `title`, `start_local`, `category`, `geo.address`, `start_local`
 - **Category mapping**: concerts→Music, performing-arts→Arts & Theatre, sports→Sports, family→Family, film→Film, festivals/community/expos/conferences/food-drink-festival→Community

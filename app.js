@@ -1,5 +1,5 @@
 const TICKETMASTER_API_KEY = 'h7RuuPhK1lwRyRqciogdVfxmAxwTTLIJ';
-const PREDICTHQ_TOKEN     = 'R2-fr5jpUT0t9Oy-_mS66OqNlWoUnWFsrnT8tUZf';
+const PREDICTHQ_TOKEN     = 'Uj5-EwOJimhJiYHV3POwrJncoKlGcaB3Jl2nlLkt';
 
 const TM_BASE   = 'https://app.ticketmaster.com/discovery/v2/events.json';
 const PHQ_BASE  = 'https://api.predicthq.com/v1/events/';
