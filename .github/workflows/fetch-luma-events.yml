@@ -17,8 +17,6 @@ jobs:
 
       - name: Fetch and filter Denver events from Lu.ma
         run: |
-          # Lu.ma returns 0 results without a browser-like Referer header.
-          # curl with full headers mirrors what worked in local testing.
           curl -s \
             -H 'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36' \
             -H 'Accept: application/json' \
@@ -28,7 +26,7 @@ jobs:
             -o /tmp/luma_raw.json
 
           python3 << 'EOF'
-          import json
+          import json, sys
           from datetime import datetime, timezone
 
           with open('/tmp/luma_raw.json') as f:
@@ -39,6 +37,12 @@ jobs:
               e for e in all_entries
               if (e.get('event', {}).get('geo_address_info') or {}).get('city', '').lower() == 'denver'
           ]
+
+          if len(all_entries) == 0:
+              # Lu.ma returned 0 results — likely an IP block from GitHub Actions.
+              # Do NOT overwrite the existing file; keep the last good cache.
+              print("WARNING: Lu.ma returned 0 entries (probable IP block). Keeping existing luma-events.json.")
+              sys.exit(0)
 
           output = {
               'fetchedAt': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ'),
