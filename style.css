@@ -202,6 +202,92 @@ input[type="date"]:focus {
   flex-shrink: 0;
 }
 
+/* ── KEYWORD FILTER ──────────────────────────────────── */
+
+.keyword-filter {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+#keyword-input {
+  flex: 1;
+  padding: 9px 14px;
+  border: 1.5px solid rgba(255, 179, 198, 0.22);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  background: rgba(255, 179, 198, 0.07);
+  transition: border-color 0.18s;
+}
+
+#keyword-input::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+#keyword-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.keyword-mode-btn {
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+.keyword-mode-btn.mode-show {
+  background: transparent;
+  border: 1.5px solid rgba(255, 179, 198, 0.35);
+  color: var(--blush);
+}
+
+.keyword-mode-btn.mode-show:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.keyword-mode-btn.mode-hide {
+  background: rgba(255, 45, 120, 0.12);
+  border: 1.5px solid var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 12px rgba(255, 45, 120, 0.2);
+}
+
+/* ── FILTER ACTIONS ──────────────────────────────────── */
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.clear-filters-btn {
+  padding: 6px 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 179, 198, 0.22);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: 0.77rem;
+  font-weight: 500;
+  cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  transition: color 0.18s, border-color 0.18s;
+}
+
+.clear-filters-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 /* ── EVENTS HEADER ───────────────────────────────────── */
 
 .events-header {

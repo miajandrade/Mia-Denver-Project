@@ -93,20 +93,35 @@ All three API sources apply two layers of filtering to ensure only genuine Denve
 - [x] Deduplication: normalized name (lowercase, alphanumeric, first 40 chars) + date as key
 - [x] Source badge on each card: "Ticketmaster", "PredictHQ", or "Lu.ma"
 - [x] Event card grid (responsive 1–3 col) — image, name, date/time, venue, category badge, source badge
-- [x] Category filter pills: Music, Sports, Arts & Theatre, Family, Film, Community
+- [x] Category filter pills: multi-select (Music, Sports, Arts & Theatre, Family, Film, Community — any combination)
+- [x] Keyword filter with Show-only / Hide toggle — matches against event name
 - [x] Date range filter — client-side From/To inputs
+- [x] Filter state persisted to `localStorage` (key: `denver-events-filters`) and restored on page load
+- [x] "Clear all filters" button — resets all filters and localStorage
 - [x] Loading skeleton animation
 - [x] Error state with retry (friendly message when API key is placeholder)
 - [x] Empty state
 - [x] XSS-safe rendering
 - [x] Clickable cards link to Ticketmaster event page
 
+## Filter System
+
+### Category pills (multi-select)
+`activeCategories` is a `Set<string>`. An empty set means "show all" (equivalent to the old "All"). Clicking a non-active pill adds it; clicking an active pill removes it; clicking "All" clears the set. `syncCategoryPills()` keeps the pill UI in sync with state.
+
+### Keyword filter
+State: `keyword` (string) and `keywordMode` (`'show' | 'hide'`).
+- **Show only**: hides every event whose `name` does NOT include the keyword (case-insensitive).
+- **Hide**: hides every event whose `name` DOES include the keyword.
+The mode toggle button cycles between the two states; `syncKeywordModeBtn()` updates its text and CSS class (`mode-show` / `mode-hide`).
+
+### Persistence
+`saveFilters()` serialises `{activeCategories, keyword, keywordMode, dateFrom, dateTo}` to `localStorage` on every `applyFilters()` call. `loadFilters()` restores state at `DOMContentLoaded` before `init()` runs. Filter state is therefore preserved across page reloads. The "Clear all filters" button resets all state to defaults (empty set, empty strings, `'show'` mode) and the next `saveFilters()` call overwrites localStorage with the clean defaults.
+
 ### Planned / Not Yet Built
-- [ ] Text search bar
 - [ ] Pagination / load more
 - [ ] Event detail modal
 - [ ] Geolocation / map view
-- [ ] Saved/favorited events (localStorage)
 
 ## Deployment
 GitHub Pages: push to a repo, enable Pages from `main` root. Swap `YOUR_KEY_HERE` in `app.js` for your real Ticketmaster API key before pushing (note: the key will be public in client-side JS — Ticketmaster free keys are rate-limited, which is acceptable for a personal site).

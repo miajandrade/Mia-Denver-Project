@@ -33,6 +33,13 @@
         </div>
       </div>
       <div class="filter-section">
+        <label>Keyword</label>
+        <div class="keyword-filter">
+          <input type="text" id="keyword-input" placeholder="e.g. jazz, comedy, trivia…" autocomplete="off" aria-label="Keyword filter">
+          <button id="keyword-mode-btn" class="keyword-mode-btn mode-show" aria-label="Toggle keyword filter mode">Show only</button>
+        </div>
+      </div>
+      <div class="filter-section">
         <label>Date Range</label>
         <div class="date-filters">
           <div class="date-input-group">
@@ -45,6 +52,9 @@
             <input type="date" id="date-to" aria-label="End date">
           </div>
         </div>
+      </div>
+      <div class="filter-actions">
+        <button id="clear-filters" class="clear-filters-btn">Clear all filters</button>
       </div>
     </section>
 

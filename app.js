@@ -43,10 +43,40 @@ const PHQ_CATEGORY_MAP = {
 
 // ── State ─────────────────────────────────────────────
 
-let allEvents = [];
-let activeCategory = 'All';
-let dateFrom = '';
-let dateTo = '';
+let allEvents       = [];
+let activeCategories = new Set(); // empty = show all (equivalent to "All")
+let keyword          = '';
+let keywordMode      = 'show';    // 'show' = show-only matching | 'hide' = hide matching
+let dateFrom         = '';
+let dateTo           = '';
+
+// ── localStorage persistence ──────────────────────────
+
+const STORAGE_KEY = 'denver-events-filters';
+
+function saveFilters() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      activeCategories: [...activeCategories],
+      keyword,
+      keywordMode,
+      dateFrom,
+      dateTo,
+    }));
+  } catch (_) {}
+}
+
+function loadFilters() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    if (!saved) return;
+    activeCategories = new Set(saved.activeCategories ?? []);
+    keyword          = saved.keyword    ?? '';
+    keywordMode      = saved.keywordMode ?? 'show';
+    dateFrom         = saved.dateFrom   ?? '';
+    dateTo           = saved.dateTo     ?? '';
+  } catch (_) {}
+}
 
 // ── XSS safety ───────────────────────────────────────
 
@@ -280,7 +310,7 @@ function renderEvents(events) {
       <div class="empty-state">
         <div class="empty-icon">🏔️</div>
         <h3>No events found</h3>
-        <p>Try a different category or date range.</p>
+        <p>Try adjusting your filters or date range.</p>
       </div>
     `;
     setCount('0 events');
@@ -336,32 +366,67 @@ function setFilterStats(totalFetched, geoPassed) {
   if (el) el.textContent = `${geoPassed} of ${totalFetched} fetched events matched Denver`;
 }
 
-// ── Category pills ────────────────────────────────────
+// ── Category pills (multi-select) ────────────────────
 
 function wireCategoryPills() {
   document.getElementById('category-filters')
     .querySelectorAll('.category-pill')
     .forEach(btn => {
       btn.addEventListener('click', () => {
-        activeCategory = btn.dataset.category;
-        document.querySelectorAll('.category-pill').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
+        const cat = btn.dataset.category;
+        if (cat === 'All') {
+          activeCategories.clear();
+        } else if (activeCategories.has(cat)) {
+          activeCategories.delete(cat);
+        } else {
+          activeCategories.add(cat);
+        }
+        syncCategoryPills();
         applyFilters();
       });
     });
 }
 
+function syncCategoryPills() {
+  document.querySelectorAll('.category-pill').forEach(btn => {
+    const cat = btn.dataset.category;
+    btn.classList.toggle('active',
+      cat === 'All' ? activeCategories.size === 0 : activeCategories.has(cat)
+    );
+  });
+}
+
+function syncKeywordModeBtn() {
+  const btn = document.getElementById('keyword-mode-btn');
+  if (!btn) return;
+  const isHide = keywordMode === 'hide';
+  btn.textContent = isHide ? 'Hide' : 'Show only';
+  btn.classList.toggle('mode-hide', isHide);
+  btn.classList.toggle('mode-show', !isHide);
+}
+
 // ── Client-side filter ────────────────────────────────
 
 function applyFilters() {
+  const kw = keyword.trim().toLowerCase();
   const filtered = allEvents.filter(event => {
-    if (activeCategory !== 'All' && event.category !== activeCategory) return false;
+    // Category: empty set = show all; otherwise event must be in the active set
+    if (activeCategories.size > 0 && !activeCategories.has(event.category)) return false;
+    // Date range
     if (event.localDate) {
       if (dateFrom && event.localDate < dateFrom) return false;
       if (dateTo   && event.localDate > dateTo)   return false;
     }
+    // Keyword
+    if (kw) {
+      const hay = (event.name || '').toLowerCase();
+      const matches = hay.includes(kw);
+      if (keywordMode === 'show' && !matches) return false;
+      if (keywordMode === 'hide' &&  matches) return false;
+    }
     return true;
   });
+  saveFilters();
   renderEvents(filtered);
 }
 
@@ -369,10 +434,6 @@ function applyFilters() {
 
 async function init() {
   renderSkeletons();
-  activeCategory = 'All';
-  document.querySelectorAll('.category-pill').forEach(b => {
-    b.classList.toggle('active', b.dataset.category === 'All');
-  });
 
   const [tmResult, phqResult, lumaResult] = await Promise.allSettled([
     fetchTicketmaster(),
@@ -402,14 +463,55 @@ async function init() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  loadFilters();
+
   wireCategoryPills();
-  document.getElementById('date-from').addEventListener('change', e => {
+  syncCategoryPills();
+
+  const kwInput   = document.getElementById('keyword-input');
+  const kwModeBtn = document.getElementById('keyword-mode-btn');
+  const dateFromEl = document.getElementById('date-from');
+  const dateToEl   = document.getElementById('date-to');
+
+  // Restore persisted values into UI
+  kwInput.value    = keyword;
+  dateFromEl.value = dateFrom;
+  dateToEl.value   = dateTo;
+  syncKeywordModeBtn();
+
+  kwInput.addEventListener('input', e => {
+    keyword = e.target.value;
+    applyFilters();
+  });
+
+  kwModeBtn.addEventListener('click', () => {
+    keywordMode = keywordMode === 'show' ? 'hide' : 'show';
+    syncKeywordModeBtn();
+    if (keyword.trim()) applyFilters();
+  });
+
+  dateFromEl.addEventListener('change', e => {
     dateFrom = e.target.value;
     applyFilters();
   });
-  document.getElementById('date-to').addEventListener('change', e => {
+  dateToEl.addEventListener('change', e => {
     dateTo = e.target.value;
     applyFilters();
   });
+
+  document.getElementById('clear-filters').addEventListener('click', () => {
+    activeCategories.clear();
+    keyword     = '';
+    keywordMode = 'show';
+    dateFrom    = '';
+    dateTo      = '';
+    syncCategoryPills();
+    kwInput.value    = '';
+    dateFromEl.value = '';
+    dateToEl.value   = '';
+    syncKeywordModeBtn();
+    applyFilters();
+  });
+
   init();
 });
