@@ -361,11 +361,6 @@ function setCount(text) {
   if (el) el.textContent = text;
 }
 
-function setFilterStats(totalFetched, geoPassed) {
-  const el = document.getElementById('filter-stats');
-  if (el) el.textContent = `${geoPassed} of ${totalFetched} fetched events matched Denver`;
-}
-
 // ── Category pills (multi-select) ────────────────────
 
 function wireCategoryPills() {
@@ -455,10 +450,6 @@ async function init() {
   }
 
   allEvents = mergeAndDeduplicate(tmData.events, phqData.events, lumaData.events);
-  setFilterStats(
-    tmData.rawCount + phqData.rawCount + lumaData.rawCount,
-    tmData.events.length + phqData.events.length + lumaData.events.length,
-  );
   applyFilters();
 }
 
