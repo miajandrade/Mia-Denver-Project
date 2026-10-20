@@ -53,6 +53,8 @@ EOF
 rm -f "$TMP_FILE"
 
 cd "$REPO_ROOT"
+echo "Pulling latest remote changes before committing..."
+git pull --no-rebase
 git add luma-events.json
 git diff --staged --quiet && echo "No changes to commit." && exit 0
 git commit -m "chore: refresh Lu.ma Denver events (manual run)"
