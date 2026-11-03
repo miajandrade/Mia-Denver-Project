@@ -126,6 +126,22 @@ The mode toggle button cycles between the two states; `syncKeywordModeBtn()` upd
 - [ ] Event detail modal
 - [ ] Geolocation / map view
 
+## Roadmap / Future Work
+
+### Recurring events
+Add recurring Denver events that don't appear in Ticketmaster/PredictHQ/Lu.ma — e.g. farmers markets, weekly open mics, regular club nights. These would need to be pulled or curated from other sources (city websites, Eventbrite, local blogs) and possibly maintained as a hand-curated static JSON file in the repo.
+
+### Free events flagging
+Add a way to identify and surface free events. Could be a "Free" filter pill and a badge on event cards. Sources would need to expose price/cost data; Ticketmaster includes `priceRanges[]` — events with no price ranges or a `$0` minimum could be auto-flagged. PredictHQ does not reliably expose pricing.
+
+### Free days at Denver public places
+Maintain a static list of Denver institutions that have periodic free admission days (e.g. Denver Art Museum first Saturdays, Denver Museum of Nature & Science, Botanic Gardens, etc.) and surface those on the relevant dates. Would live as a hand-maintained JSON or JS array since these schedules don't come from an API.
+
+### Other planned items
+- **Weekly email digest** — send a curated list of upcoming Denver events to subscribers (would require a backend or a service like Buttondown/Mailchimp)
+- **More event sources** — evaluate Eventbrite, Denver city calendar, Meetup.com, AXS, local venue scrapers
+- **Weekly Lu.ma refresh** — the GitHub Action is IP-blocked by Azure; the manual workaround is `bash scripts/update-luma.sh` from a residential IP once a week or as needed
+
 ## Deployment
 GitHub Pages: push to a repo, enable Pages from `main` root. Swap `YOUR_KEY_HERE` in `app.js` for your real Ticketmaster API key before pushing (note: the key will be public in client-side JS — Ticketmaster free keys are rate-limited, which is acceptable for a personal site).
 
