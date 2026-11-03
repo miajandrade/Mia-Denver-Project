@@ -3,11 +3,11 @@
 ## Project Purpose
 A personal MVP single-page web app that aggregates and displays upcoming events in Denver, CO. Zero backend, deployable to GitHub Pages. Clean filterable event board sourced from the Ticketmaster Discovery API.
 
-## Visual Design (as of May 2026)
+## Visual Design (as of Nov 2026)
 Luxury editorial magazine aesthetic — high-end fashion meets city nightlife guide.
 - **Color palette**: Deep dusty rose `#1a0a0f` background, `#2d1520` cards, hot pink `#ff2d78` accent, blush `#ffb3c6` secondary, dark filter bar `#3d1f2d`
 - **Typography**: Playfair Display (900/700) for logo + headings; DM Sans (400/500/700) for body — loaded via Google Fonts in `index.html`
-- **Header**: gradient `#1a0a0f → #3d1522`, SVG fractalNoise texture overlay via `::before` pseudo-element
+- **Header**: Denver skyline photo (`assets/denver-skyline.jpg`, 1600×1067px, downloaded from Unsplash — free to use under Unsplash License, attribution appreciated) layered under dark gradient overlay `rgba(26,10,15,0.7) → rgba(26,10,15,0.95)`; SVG fractalNoise texture overlay via `::before` pseudo-element; logo 6rem with hot-pink glow on "Events" word
 - **Cards**: `#2d1520` surface, 3px hot-pink top border, glow box-shadow on hover, `fadeInUp` stagger animation (12 nth-child delays × 65 ms)
 - **Image placeholders**: pink gradient (`#5c1f38 → #3a1225 → #7a2347`), emoji hidden via `font-size: 0`
 - **Category badges**: uniformly hot pink `#ff2d78` with white text
@@ -22,10 +22,13 @@ Luxury editorial magazine aesthetic — high-end fashion meets city nightlife gu
 ## File Structure
 ```
 denver-events/
-├── index.html      # App shell, semantic HTML
-├── style.css       # All styles — CSS custom properties, responsive grid, card images
-├── app.js          # Data fetching, normalization, filtering, rendering
-└── CLAUDE.md       # This file
+├── index.html           # App shell, semantic HTML
+├── style.css            # All styles — CSS custom properties, responsive grid, card images
+├── app.js               # Data fetching, normalization, filtering, rendering
+├── assets/
+│   └── denver-skyline.jpg  # Header background (1600×1067px, Unsplash free license)
+├── luma-events.json     # Static Lu.ma event cache (refreshed daily via GitHub Action)
+└── CLAUDE.md            # This file
 ```
 
 ## APIs Used
