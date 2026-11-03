@@ -137,6 +137,13 @@ Add a way to identify and surface free events. Could be a "Free" filter pill and
 ### Free days at Denver public places
 Maintain a static list of Denver institutions that have periodic free admission days (e.g. Denver Art Museum first Saturdays, Denver Museum of Nature & Science, Botanic Gardens, etc.) and surface those on the relevant dates. Would live as a hand-maintained JSON or JS array since these schedules don't come from an API.
 
+### Secure the API keys
+The Ticketmaster and PredictHQ keys are currently hardcoded in `app.js` lines 1–2, and the GitHub repo is public — anyone can read them. Plan to fix this by:
+
+1. **Move API calls behind a small free proxy** — a Cloudflare Worker (free tier) that holds the keys as environment secrets and forwards requests to Ticketmaster and PredictHQ. `app.js` would call the Worker URL instead of the APIs directly.
+2. **Rotate the exposed keys** — after the proxy is in place, generate new keys for both services and discard the old ones, since they have been publicly visible in git history.
+3. **Audit the repo** — checked as of Nov 2026: `CLAUDE.md`, `index.html`, `style.css`, and `.github/` contain no actual key values (only variable name references and the `YOUR_KEY_HERE` placeholder). The live keys live only in `app.js`.
+
 ### Other planned items
 - **Weekly email digest** — send a curated list of upcoming Denver events to subscribers (would require a backend or a service like Buttondown/Mailchimp)
 - **More event sources** — evaluate Eventbrite, Denver city calendar, Meetup.com, AXS, local venue scrapers
