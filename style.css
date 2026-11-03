@@ -32,13 +32,17 @@ body {
 .site-header {
   background-color: #1a0a0f;
   background-image:
-    linear-gradient(to bottom, rgba(26, 10, 15, 0.25) 0%, rgba(26, 10, 15, 0.85) 100%),
+    linear-gradient(180deg, rgba(255, 45, 120, 0.30) 0%, rgba(140, 24, 70, 0.42) 50%, rgba(26, 10, 15, 0.94) 100%),
     url('assets/header.jpg');
   background-size: cover;
-  background-position: center;
+  background-position: center 20%;
   background-repeat: no-repeat;
   color: var(--text);
-  padding: 96px 24px 104px;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 72px 24px 88px;
   text-align: center;
   position: relative;
   overflow: hidden;
@@ -69,6 +73,7 @@ body {
 }
 
 .header-inner {
+  width: 100%;
   max-width: 900px;
   margin: 0 auto;
   position: relative;
@@ -77,31 +82,30 @@ body {
 
 .site-logo {
   font-family: 'Playfair Display', serif;
-  font-size: 6rem;
+  font-size: 6.5rem;
   font-weight: 900;
   letter-spacing: -2px;
   margin-bottom: 18px;
   line-height: 1.02;
-  color: var(--blush);
-  text-shadow: 0 2px 24px rgba(26, 10, 15, 0.6);
+  color: #fff0f3;
+  text-shadow: 0 4px 28px rgba(26, 10, 15, 0.55);
 }
 
 .site-logo span {
   color: var(--accent);
   text-shadow:
-    0 0 24px rgba(255, 45, 120, 0.65),
-    0 0 60px rgba(255, 45, 120, 0.35),
-    0 0 120px rgba(255, 45, 120, 0.15);
+    0 0 28px rgba(255, 45, 120, 0.55),
+    0 4px 24px rgba(26, 10, 15, 0.6),
+    0 0 90px rgba(255, 45, 120, 0.25);
 }
 
 .site-tagline {
-  font-size: 1rem;
-  color: var(--blush);
-  letter-spacing: 0.18em;
+  font-size: 1.0625rem;
+  color: #ffd9e3;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  font-weight: 400;
-  opacity: 0.95;
-  text-shadow: 0 1px 12px rgba(26, 10, 15, 0.8);
+  font-weight: 500;
+  text-shadow: 0 2px 14px rgba(26, 10, 15, 0.8);
 }
 
 /* ── MAIN ────────────────────────────────────────────── */

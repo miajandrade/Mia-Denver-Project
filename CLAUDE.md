@@ -7,7 +7,7 @@ A personal MVP single-page web app that aggregates and displays upcoming events 
 Luxury editorial magazine aesthetic — high-end fashion meets city nightlife guide.
 - **Color palette**: Deep dusty rose `#1a0a0f` background, `#2d1520` cards, hot pink `#ff2d78` accent, blush `#ffb3c6` secondary, dark filter bar `#3d1f2d`
 - **Typography**: Playfair Display (900/700) for logo + headings; DM Sans (400/500/700) for body — loaded via Google Fonts in `index.html`
-- **Header**: Custom header photo (`assets/header.jpg`, 1600×777px, user-provided — original file "Denver Events Header .jpeg" from ~/Desktop/denver-events, upscaled to 1600px with sips) layered under dark gradient overlay `rgba(26,10,15,0.7) → rgba(26,10,15,0.95)`; SVG fractalNoise texture overlay via `::before` pseudo-element; logo 6rem with hot-pink glow on "Events" word
+- **Header**: Custom header photo (`assets/header.jpg`, 1600×777px, user-provided — original file "Denver Events Header .jpeg" from ~/Desktop/denver-events, upscaled to 1600px with sips) layered under a pink tint overlay (`rgba(255,45,120,0.30)` → `rgba(140,24,70,0.42)` → `rgba(26,10,15,0.94)`), positioned `center 20%` so the pink sky shows, header min-height 480px; SVG fractalNoise texture overlay via `::before` pseudo-element; logo 6rem with hot-pink glow on "Events" word
 - **Cards**: `#2d1520` surface, 3px hot-pink top border, glow box-shadow on hover, `fadeInUp` stagger animation (12 nth-child delays × 65 ms)
 - **Image placeholders**: pink gradient (`#5c1f38 → #3a1225 → #7a2347`), emoji hidden via `font-size: 0`
 - **Category badges**: uniformly hot pink `#ff2d78` with white text
