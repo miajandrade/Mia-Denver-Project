@@ -33,8 +33,8 @@ denver_entries = [
     if (e.get('event', {}).get('geo_address_info') or {}).get('city', '').lower() == 'denver'
 ]
 
-if len(all_entries) == 0:
-    print("ERROR: Lu.ma returned 0 entries. Nothing written.")
+if len(denver_entries) == 0:
+    print(f"ERROR: 0 Denver entries (of {len(all_entries)} fetched). Nothing written.")
     sys.exit(1)
 
 output = {

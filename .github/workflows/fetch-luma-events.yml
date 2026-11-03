@@ -38,10 +38,11 @@ jobs:
               if (e.get('event', {}).get('geo_address_info') or {}).get('city', '').lower() == 'denver'
           ]
 
-          if len(all_entries) == 0:
-              # Lu.ma returned 0 results — likely an IP block from GitHub Actions.
-              # Do NOT overwrite the existing file; keep the last good cache.
-              print("WARNING: Lu.ma returned 0 entries (probable IP block). Keeping existing luma-events.json.")
+          if len(denver_entries) == 0:
+              # Lu.ma returned nothing usable for Denver (0 results, or a partial/blocked
+              # response from GitHub Actions). Do NOT overwrite the existing file;
+              # keep the last good cache.
+              print(f"WARNING: 0 Denver entries (of {len(all_entries)} fetched). Keeping existing luma-events.json.")
               sys.exit(0)
 
           output = {
