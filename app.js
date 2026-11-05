@@ -425,10 +425,43 @@ function applyFilters() {
   renderEvents(filtered);
 }
 
+// ── Free days ─────────────────────────────────────────
+
+async function loadFreeDays() {
+  const section = document.getElementById('free-days');
+  const list = document.getElementById('free-days-list');
+  if (!section || !list) return;
+  try {
+    const res = await fetch('./free-days.json');
+    if (!res.ok) return;
+    const data = await res.json();
+    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+    const limit = new Date(Date.now() + 60 * 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+    const upcoming = (data.entries || [])
+      .filter(e => e.date >= today && e.date <= limit)
+      .sort((a, b) => a.date.localeCompare(b.date));
+    if (!upcoming.length) return;
+    list.innerHTML = upcoming.map(e => {
+      const d = new Date(`${e.date}T12:00:00`);
+      const when = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+      const url = /^https:\/\//.test(e.url || '') ? e.url : '#';
+      return `<a class="free-day-card" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
+        <span class="free-day-date">${esc(when)}${e.time ? ' · ' + esc(e.time) : ''}</span>
+        <span class="free-day-venue">${esc(e.venue)}</span>
+        <span class="free-day-note">${esc(e.note)}</span>
+      </a>`;
+    }).join('');
+    section.hidden = false;
+  } catch (err) {
+    console.warn('[Free days]', err);
+  }
+}
+
 // ── Init ──────────────────────────────────────────────
 
 async function init() {
   renderSkeletons();
+  loadFreeDays();
 
   const [tmResult, phqResult, lumaResult] = await Promise.allSettled([
     fetchTicketmaster(),

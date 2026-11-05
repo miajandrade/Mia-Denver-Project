@@ -635,3 +635,32 @@ input[type="date"]:focus {
 @media (min-width: 641px) and (max-width: 960px) {
   .events-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ── FREE DAYS ──────────────────────────────────────── */
+.free-days { margin: 0 0 32px; }
+.free-days[hidden] { display: none; }
+.free-days h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.5rem;
+  color: var(--text);
+  margin-bottom: 14px;
+}
+.free-days-sub { font-family: 'DM Sans', sans-serif; font-size: 0.9rem; font-weight: 500; color: var(--text-muted); margin-left: 8px; }
+.free-days-list { display: flex; gap: 14px; overflow-x: auto; padding-bottom: 8px; }
+.free-day-card {
+  flex: 0 0 240px;
+  display: flex; flex-direction: column; gap: 4px;
+  background: var(--surface);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+  text-decoration: none;
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s;
+}
+.free-day-card:hover { box-shadow: var(--shadow-hover); }
+.free-day-date { font-size: 0.8rem; font-weight: 700; color: var(--accent); letter-spacing: 0.04em; }
+.free-day-venue { font-weight: 700; }
+.free-day-note { font-size: 0.85rem; color: var(--text-muted); }
+.free-days-note { font-size: 0.8rem; color: var(--text-muted); margin-top: 6px; }

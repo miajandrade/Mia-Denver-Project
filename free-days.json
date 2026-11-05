@@ -1,0 +1,20 @@
+{
+  "updated": "2026-11-04",
+  "note": "Hand-maintained. Sources: scfd.org free days, denverartmuseum.org/en/free-days-dam, uchealth.org free days guide. Check venue sites before visiting.",
+  "entries": [
+    { "venue": "Molly Brown House Museum", "date": "2026-11-05", "time": "4–7 PM", "note": "Free evening for SCFD-district residents", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Art Museum", "date": "2026-11-07", "time": "10 AM–10 PM", "note": "Night at the Museums. Special exhibitions cost extra", "url": "https://www.denverartmuseum.org/en/free-days-dam" },
+    { "venue": "Clyfford Still Museum", "date": "2026-11-07", "time": "10 AM–10 PM", "note": "Night at the Museums", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Museum of Nature & Science", "date": "2026-11-07", "time": "5–10 PM", "note": "Free evening only", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Zoo", "date": "2026-11-11", "time": "", "note": "Timed entry. Register for the free-day lottery", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Zoo", "date": "2026-11-14", "time": "", "note": "Timed entry. Register for the free-day lottery", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Plains Conservation Center", "date": "2026-11-14", "time": "10 AM–3 PM", "note": "Denver Botanic Gardens in Aurora. Register online", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Museum of Nature & Science", "date": "2026-11-16", "time": "", "note": "Reservation needed only for special exhibits and planetarium", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Zoo", "date": "2026-11-22", "time": "", "note": "Timed entry. Register for the free-day lottery", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Botanic Gardens", "date": "2026-11-27", "time": "", "note": "York Street & Chatfield Farms. Register online", "url": "https://scfd.org/find-culture/free-days/" },
+    { "venue": "Denver Art Museum", "date": "2026-12-08", "time": "", "note": "Special exhibitions cost extra", "url": "https://www.denverartmuseum.org/en/free-days-dam" },
+    { "venue": "Denver Art Museum", "date": "2027-01-12", "time": "", "note": "Special exhibitions cost extra", "url": "https://www.denverartmuseum.org/en/free-days-dam" },
+    { "venue": "Denver Art Museum", "date": "2027-02-09", "time": "", "note": "Special exhibitions cost extra", "url": "https://www.denverartmuseum.org/en/free-days-dam" },
+    { "venue": "Denver Art Museum", "date": "2027-03-09", "time": "", "note": "Special exhibitions cost extra", "url": "https://www.denverartmuseum.org/en/free-days-dam" }
+  ]
+}
