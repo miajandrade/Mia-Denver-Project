@@ -324,9 +324,9 @@ function renderEvents(events) {
     const badgeClass  = BADGE_CLASS[event.category] ?? 'badge-other';
     const sourceClass = event.source === 'Ticketmaster' ? 'source-tm'
                      : event.source === 'Lu.ma'         ? 'source-luma'
-                     : event.source === 'Free Day'      ? 'source-free'
+                     : (event.source === 'Free Day' || event.source === 'Recurring') ? 'source-free'
                      : 'source-phq';
-    const dateStr     = formatDate(event.localDate, event.localTime) + (event.timeText ? ' · ' + event.timeText : '');
+    const dateStr     = event.dateText || (formatDate(event.localDate, event.localTime) + (event.timeText ? ' · ' + event.timeText : ''));
     const href        = event.ticketUrl ? esc(event.ticketUrl) : '#';
 
     const imageEl = event.image
@@ -470,16 +470,70 @@ async function fetchFreeDays() {
   return { events, rawCount: events.length };
 }
 
+// ── Recurring / seasonal events (hand-maintained list) ──
+
+function addDaysIso(iso, n) {
+  const d = new Date(`${iso}T12:00:00`);
+  d.setDate(d.getDate() + n);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function shortDate(iso) {
+  return new Date(`${iso}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+async function fetchRecurring() {
+  const res = await fetch('./recurring-events.json');
+  if (!res.ok) throw new Error(`recurring-events HTTP ${res.status}`);
+  const data = await res.json();
+  const today = isoDenver(Date.now());
+  const horizon = addDaysIso(today, 56);
+  const events = [];
+  const make = (e, localDate, extra = {}) => ({
+    name:      e.name,
+    localDate,
+    localTime: null,
+    timeText:  e.time || '',
+    detail:    e.note || '',
+    venueName: e.venue || 'Denver, CO',
+    category:  e.category || 'Community',
+    image:     null,
+    ticketUrl: /^https:\/\//.test(e.url || '') ? e.url : null,
+    source:    'Recurring',
+    free:      !!e.free,
+    ...extra,
+  });
+  for (const e of data.entries || []) {
+    if (e.kind === 'weekly') {
+      let d = e.start > today ? e.start : today;
+      while (d <= e.end && d <= horizon) {
+        if (new Date(`${d}T12:00:00`).getDay() === e.weekday) events.push(make(e, d));
+        d = addDaysIso(d, 1);
+      }
+    } else if (e.kind === 'span') {
+      if (today > e.end) continue;
+      const started = today >= e.start;
+      events.push(make(e, started ? today : e.start, {
+        dateText: started ? `Now through ${shortDate(e.end)}` : `${shortDate(e.start)} – ${shortDate(e.end)}`,
+      }));
+    } else {
+      for (const d of e.dates || []) if (d >= today) events.push(make(e, d));
+    }
+  }
+  return { events, rawCount: events.length };
+}
+
 // ── Init ──────────────────────────────────────────────
 
 async function init() {
   renderSkeletons();
 
-  const [tmResult, phqResult, lumaResult, freeResult] = await Promise.allSettled([
+  const [tmResult, phqResult, lumaResult, freeResult, recResult] = await Promise.allSettled([
     fetchTicketmaster(),
     fetchPredictHQ(),
     fetchLuma(),
     fetchFreeDays(),
+    fetchRecurring(),
   ]);
 
   const tmData   = tmResult.status   === 'fulfilled' ? tmResult.value   : { events: [], rawCount: 0 };
@@ -487,18 +541,20 @@ async function init() {
   const lumaData = lumaResult.status === 'fulfilled' ? lumaResult.value : { events: [], rawCount: 0 };
 
   const freeData = freeResult.status === 'fulfilled' ? freeResult.value : { events: [], rawCount: 0 };
+  const recData = recResult.status === 'fulfilled' ? recResult.value : { events: [], rawCount: 0 };
+  if (recResult.status === 'rejected') console.warn('[Recurring]', recResult.reason);
   if (freeResult.status === 'rejected') console.warn('[Free days]', freeResult.reason);
 
   if (tmResult.status   === 'rejected') console.warn('[Ticketmaster]', tmResult.reason);
   if (phqResult.status  === 'rejected') console.warn('[PredictHQ]',   phqResult.reason);
   if (lumaResult.status === 'rejected') console.warn('[Lu.ma]',       lumaResult.reason);
 
-  if (tmData.events.length === 0 && phqData.events.length === 0 && lumaData.events.length === 0 && freeData.events.length === 0) {
+  if (tmData.events.length === 0 && phqData.events.length === 0 && lumaData.events.length === 0 && freeData.events.length === 0 && recData.events.length === 0) {
     renderError('All event sources failed to load. Check your connection and try again.');
     return;
   }
 
-  allEvents = mergeAndDeduplicate(tmData.events, phqData.events, lumaData.events, freeData.events);
+  allEvents = mergeAndDeduplicate(tmData.events, phqData.events, lumaData.events, freeData.events, recData.events);
   applyFilters();
 }
 

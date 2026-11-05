@@ -1,0 +1,10 @@
+{
+  "updated": "2026-11-04",
+  "note": "Hand-maintained recurring and seasonal Denver events. Only entries verified for 2026. kinds: weekly (weekday 0=Sun..6=Sat, start, end), span (start, end; one card shown while running), dates (explicit list).",
+  "entries": [
+    { "name": "Cherry Creek Holiday Market", "venue": "Fillmore Plaza, Cherry Creek North", "kind": "span", "start": "2026-11-19", "end": "2026-12-24", "note": "Free. Mon–Wed 12–7 PM, Thu–Sat 11 AM–9 PM, Sun 11 AM–7 PM. Short hours Thanksgiving and Dec 24", "free": true, "category": "Community", "url": "https://cherrycreeknorth.com/event/cherry-creek-holiday-market/" },
+    { "name": "Denver Christkindlmarket", "venue": "Tivoli Quad, Auraria Campus", "kind": "span", "start": "2026-11-20", "end": "2026-12-23", "note": "German-style holiday market. Check the site for hours and admission", "free": false, "category": "Community", "url": "https://kosi101.com/denver-christkindlmarket-extends-its-holiday-magic-at-auraria-campus-for-2026/" },
+    { "name": "South Pearl Street Farmers Market (last of season)", "venue": "S. Pearl St. between Arkansas & Iowa", "kind": "dates", "dates": ["2026-11-08"], "time": "9 AM–1 PM", "note": "Final market day of the 2026 season", "free": false, "category": "Community", "url": "https://diningout.com/denver/guide-to-denver-farmers-markets/" },
+    { "name": "Trivia Night at Finn's Manor", "venue": "Finn's Manor, 2927 Larimer St (RiNo)", "kind": "weekly", "weekday": 2, "start": "2026-08-04", "end": "2026-12-29", "time": "7–8:30 PM", "note": "Free to play. All-night happy hour", "free": true, "category": "Community", "url": "https://rinoartdistrict.org/do/trivia-and-all-night-happy-hour" }
+  ]
+}

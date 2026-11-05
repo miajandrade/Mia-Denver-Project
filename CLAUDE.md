@@ -28,6 +28,7 @@ denver-events/
 ├── assets/
 │   └── header.jpg          # Header background (2400×1600px, user-chosen photo)
 ├── free-days.json       # Hand-maintained free museum/attraction days (shown in Free Days row)
+├── recurring-events.json # Hand-maintained recurring/seasonal events (markets, trivia); expanded to dated cards by fetchRecurring()
 ├── luma-events.json     # Static Lu.ma event cache (refreshed daily via GitHub Action)
 └── CLAUDE.md            # This file
 ```
@@ -153,6 +154,8 @@ The Ticketmaster and PredictHQ keys are currently hardcoded in `app.js` lines 1�
 - **PredictHQ**: DEAD. Token returns HTTP 401 and the PredictHQ trial has ended, so a new token cannot be issued. The code stays in `app.js` and fails quietly (warning in console); remove or replace unless the account is upgraded.
 - **Lu.ma**: PAUSED by user choice. `luma-events.json` is empty; refresh with `bash scripts/update-luma.sh` if wanted.
 - **Free Days**: working, hand-maintained `free-days.json`, shown as event cards with a "Free only" filter (`freeOnly` state, persisted).
+
+- **Recurring events (BUILT Nov 2026, first version)**: `recurring-events.json`, kinds `weekly` / `span` / `dates`. Only entries verified for 2026 from official or dated sources (Cherry Creek Holiday Market, Denver Christkindlmarket at Auraria, last South Pearl Street market Nov 8, Finn's Manor trivia Tuesdays). Weekly entries expand 8 weeks ahead. Gaps: most older trivia/open-mic lists found were 2014–2016 and were NOT used; Denver farmers markets mostly close by Nov (reopen spring 2027); A Tavola Winter Market 2026–27 dates unconfirmed. Next: verify more bar nights and 2027 markets from official sites.
 
 ### Other planned items
 - **Weekly email digest** — send a curated list of upcoming Denver events to subscribers (would require a backend or a service like Buttondown/Mailchimp)
