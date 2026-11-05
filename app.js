@@ -433,14 +433,14 @@ async function loadFreeDays() {
   if (!section || !list) return;
   try {
     const res = await fetch('./free-days.json');
-    if (!res.ok) return;
+    if (!res.ok) { list.innerHTML = `<p class="free-days-note">Could not load free days (HTTP ${res.status}).</p>`; return; }
     const data = await res.json();
     const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
     const limit = new Date(Date.now() + 60 * 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
     const upcoming = (data.entries || [])
       .filter(e => e.date >= today && e.date <= limit)
       .sort((a, b) => a.date.localeCompare(b.date));
-    if (!upcoming.length) return;
+    if (!upcoming.length) { list.innerHTML = '<p class="free-days-note">No free days listed in the next 60 days.</p>'; return; }
     list.innerHTML = upcoming.map(e => {
       const d = new Date(`${e.date}T12:00:00`);
       const when = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
@@ -454,6 +454,7 @@ async function loadFreeDays() {
     section.hidden = false;
   } catch (err) {
     console.warn('[Free days]', err);
+    list.innerHTML = `<p class="free-days-note">Could not load free days: ${esc(err.message)}</p>`;
   }
 }
 
