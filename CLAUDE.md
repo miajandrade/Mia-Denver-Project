@@ -148,6 +148,12 @@ The Ticketmaster and PredictHQ keys are currently hardcoded in `app.js` lines 1�
 2. **Rotate the exposed keys** — after the proxy is in place, generate new keys for both services and discard the old ones, since they have been publicly visible in git history.
 3. **Audit the repo** — checked as of Nov 2026: `CLAUDE.md`, `index.html`, `style.css`, and `.github/` contain no actual key values (only variable name references and the `YOUR_KEY_HERE` placeholder). The live keys live only in `app.js`.
 
+### Source status (Nov 4, 2026)
+- **Ticketmaster**: working (main source).
+- **PredictHQ**: DEAD. Token returns HTTP 401 and the PredictHQ trial has ended, so a new token cannot be issued. The code stays in `app.js` and fails quietly (warning in console); remove or replace unless the account is upgraded.
+- **Lu.ma**: PAUSED by user choice. `luma-events.json` is empty; refresh with `bash scripts/update-luma.sh` if wanted.
+- **Free Days**: working, hand-maintained `free-days.json`, shown as event cards with a "Free only" filter (`freeOnly` state, persisted).
+
 ### Other planned items
 - **Weekly email digest** — send a curated list of upcoming Denver events to subscribers (would require a backend or a service like Buttondown/Mailchimp)
 - **More event sources** — evaluate Eventbrite, Denver city calendar, Meetup.com, AXS, local venue scrapers
