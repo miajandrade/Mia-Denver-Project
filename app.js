@@ -435,8 +435,13 @@ async function loadFreeDays() {
     const res = await fetch('./free-days.json');
     if (!res.ok) { list.innerHTML = `<p class="free-days-note">Could not load free days (HTTP ${res.status}).</p>`; return; }
     const data = await res.json();
-    const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
-    const limit = new Date(Date.now() + 60 * 86400000).toLocaleDateString('en-CA', { timeZone: 'America/Denver' });
+    const isoDenver = (ms) => {
+      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' })
+        .formatToParts(new Date(ms)).reduce((o, p) => { o[p.type] = p.value; return o; }, {});
+      return `${parts.year}-${parts.month}-${parts.day}`;
+    };
+    const today = isoDenver(Date.now());
+    const limit = isoDenver(Date.now() + 60 * 86400000);
     const upcoming = (data.entries || [])
       .filter(e => e.date >= today && e.date <= limit)
       .sort((a, b) => a.date.localeCompare(b.date));
