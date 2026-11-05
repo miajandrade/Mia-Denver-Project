@@ -49,6 +49,7 @@ let keyword          = '';
 let keywordMode      = 'show';    // 'show' = show-only matching | 'hide' = hide matching
 let dateFrom         = '';
 let dateTo           = '';
+let freeOnly         = false;
 
 // ── localStorage persistence ──────────────────────────
 
@@ -62,6 +63,7 @@ function saveFilters() {
       keywordMode,
       dateFrom,
       dateTo,
+      freeOnly,
     }));
   } catch (_) {}
 }
@@ -75,6 +77,7 @@ function loadFilters() {
     keywordMode      = saved.keywordMode ?? 'show';
     dateFrom         = saved.dateFrom   ?? '';
     dateTo           = saved.dateTo     ?? '';
+    freeOnly         = saved.freeOnly   ?? false;
   } catch (_) {}
 }
 
@@ -321,19 +324,21 @@ function renderEvents(events) {
     const badgeClass  = BADGE_CLASS[event.category] ?? 'badge-other';
     const sourceClass = event.source === 'Ticketmaster' ? 'source-tm'
                      : event.source === 'Lu.ma'         ? 'source-luma'
+                     : event.source === 'Free Day'      ? 'source-free'
                      : 'source-phq';
-    const dateStr     = formatDate(event.localDate, event.localTime);
+    const dateStr     = formatDate(event.localDate, event.localTime) + (event.timeText ? ' · ' + event.timeText : '');
     const href        = event.ticketUrl ? esc(event.ticketUrl) : '#';
 
     const imageEl = event.image
       ? `<img class="event-card__image" src="${esc(event.image)}" alt="${esc(event.name)}" loading="lazy">`
-      : `<div class="event-card__image-placeholder">${CATEGORY_ICON[event.category] ?? '📅'}</div>`;
+      : `<div class="event-card__image-placeholder">${event.free ? '🎟️' : (CATEGORY_ICON[event.category] ?? '📅')}</div>`;
 
     return `
       <a class="event-card" href="${href}" target="_blank" rel="noopener noreferrer" role="listitem">
         ${imageEl}
         <div class="event-card__header">
           <span class="category-badge ${badgeClass}">${esc(event.category)}</span>
+          ${event.free ? '<span class="free-badge">FREE</span>' : ''}
           <span class="source-badge ${sourceClass}">${esc(event.source)}</span>
         </div>
         <div class="event-card__body">
@@ -347,6 +352,7 @@ function renderEvents(events) {
               <span class="meta-icon" aria-hidden="true">📍</span>
               <span>${esc(event.venueName)}</span>
             </div>
+            ${event.detail ? `<div class="meta-row"><span class="meta-icon" aria-hidden="true">ℹ️</span><span>${esc(event.detail)}</span></div>` : ''}
           </div>
         </div>
       </a>
@@ -391,6 +397,13 @@ function syncCategoryPills() {
   });
 }
 
+function syncFreeBtn() {
+  const btn = document.getElementById('free-only-btn');
+  if (!btn) return;
+  btn.classList.toggle('active', freeOnly);
+  btn.setAttribute('aria-pressed', String(freeOnly));
+}
+
 function syncKeywordModeBtn() {
   const btn = document.getElementById('keyword-mode-btn');
   if (!btn) return;
@@ -405,6 +418,7 @@ function syncKeywordModeBtn() {
 function applyFilters() {
   const kw = keyword.trim().toLowerCase();
   const filtered = allEvents.filter(event => {
+    if (freeOnly && !event.free) return false;
     // Category: empty set = show all; otherwise event must be in the active set
     if (activeCategories.size > 0 && !activeCategories.has(event.category)) return false;
     // Date range
@@ -425,70 +439,66 @@ function applyFilters() {
   renderEvents(filtered);
 }
 
-// ── Free days ─────────────────────────────────────────
+// ── Free days (shown as regular event cards) ────────────
 
-async function loadFreeDays() {
-  const section = document.getElementById('free-days');
-  const list = document.getElementById('free-days-list');
-  if (!section || !list) return;
-  try {
-    const res = await fetch('./free-days.json');
-    if (!res.ok) { list.innerHTML = `<p class="free-days-note">Could not load free days (HTTP ${res.status}).</p>`; return; }
-    const data = await res.json();
-    const isoDenver = (ms) => {
-      const parts = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' })
-        .formatToParts(new Date(ms)).reduce((o, p) => { o[p.type] = p.value; return o; }, {});
-      return `${parts.year}-${parts.month}-${parts.day}`;
-    };
-    const today = isoDenver(Date.now());
-    const limit = isoDenver(Date.now() + 60 * 86400000);
-    const upcoming = (data.entries || [])
-      .filter(e => e.date >= today && e.date <= limit)
-      .sort((a, b) => a.date.localeCompare(b.date));
-    if (!upcoming.length) { list.innerHTML = '<p class="free-days-note">No free days listed in the next 60 days.</p>'; return; }
-    list.innerHTML = upcoming.map(e => {
-      const d = new Date(`${e.date}T12:00:00`);
-      const when = d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-      const url = /^https:\/\//.test(e.url || '') ? e.url : '#';
-      return `<a class="free-day-card" href="${esc(url)}" target="_blank" rel="noopener noreferrer">
-        <span class="free-day-date">${esc(when)}${e.time ? ' · ' + esc(e.time) : ''}</span>
-        <span class="free-day-venue">${esc(e.venue)}</span>
-        <span class="free-day-note">${esc(e.note)}</span>
-      </a>`;
-    }).join('');
-    section.hidden = false;
-  } catch (err) {
-    console.warn('[Free days]', err);
-    list.innerHTML = `<p class="free-days-note">Could not load free days: ${esc(err.message)}</p>`;
-  }
+function isoDenver(ms) {
+  const p = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Denver', year: 'numeric', month: '2-digit', day: '2-digit' })
+    .formatToParts(new Date(ms)).reduce((o, x) => { o[x.type] = x.value; return o; }, {});
+  return `${p.year}-${p.month}-${p.day}`;
+}
+
+async function fetchFreeDays() {
+  const res = await fetch('./free-days.json');
+  if (!res.ok) throw new Error(`free-days HTTP ${res.status}`);
+  const data = await res.json();
+  const today = isoDenver(Date.now());
+  const events = (data.entries || [])
+    .filter(e => e.date >= today)
+    .map(e => ({
+      name:      `Free Day: ${e.venue}`,
+      localDate: e.date,
+      localTime: null,
+      timeText:  e.time || '',
+      detail:    e.note || '',
+      venueName: e.venue,
+      category:  'Community',
+      image:     null,
+      ticketUrl: /^https:\/\//.test(e.url || '') ? e.url : null,
+      source:    'Free Day',
+      free:      true,
+    }));
+  return { events, rawCount: events.length };
 }
 
 // ── Init ──────────────────────────────────────────────
 
 async function init() {
   renderSkeletons();
-  loadFreeDays();
 
-  const [tmResult, phqResult, lumaResult] = await Promise.allSettled([
+  const [tmResult, phqResult, lumaResult, freeResult] = await Promise.allSettled([
     fetchTicketmaster(),
     fetchPredictHQ(),
     fetchLuma(),
+    fetchFreeDays(),
   ]);
 
   const tmData   = tmResult.status   === 'fulfilled' ? tmResult.value   : { events: [], rawCount: 0 };
   const phqData  = phqResult.status  === 'fulfilled' ? phqResult.value  : { events: [], rawCount: 0 };
   const lumaData = lumaResult.status === 'fulfilled' ? lumaResult.value : { events: [], rawCount: 0 };
 
+  const freeData = freeResult.status === 'fulfilled' ? freeResult.value : { events: [], rawCount: 0 };
+  if (freeResult.status === 'rejected') console.warn('[Free days]', freeResult.reason);
+
   if (tmResult.status   === 'rejected') console.warn('[Ticketmaster]', tmResult.reason);
   if (phqResult.status  === 'rejected') console.warn('[PredictHQ]',   phqResult.reason);
   if (lumaResult.status === 'rejected') console.warn('[Lu.ma]',       lumaResult.reason);
 
-  if (tmData.events.length === 0 && phqData.events.length === 0 && lumaData.events.length === 0) {
+  if (tmData.events.length === 0 && phqData.events.length === 0 && lumaData.events.length === 0 && freeData.events.length === 0) {
     renderError('All event sources failed to load. Check your connection and try again.');
     return;
   }
 
-  allEvents = mergeAndDeduplicate(tmData.events, phqData.events, lumaData.events);
+  allEvents = mergeAndDeduplicate(tmData.events, phqData.events, lumaData.events, freeData.events);
   applyFilters();
 }
 
@@ -508,6 +518,13 @@ document.addEventListener('DOMContentLoaded', () => {
   dateFromEl.value = dateFrom;
   dateToEl.value   = dateTo;
   syncKeywordModeBtn();
+  syncFreeBtn();
+
+  document.getElementById('free-only-btn').addEventListener('click', () => {
+    freeOnly = !freeOnly;
+    syncFreeBtn();
+    applyFilters();
+  });
 
   kwInput.addEventListener('input', e => {
     keyword = e.target.value;
@@ -535,6 +552,8 @@ document.addEventListener('DOMContentLoaded', () => {
     keywordMode = 'show';
     dateFrom    = '';
     dateTo      = '';
+    freeOnly    = false;
+    syncFreeBtn();
     syncCategoryPills();
     kwInput.value    = '';
     dateFromEl.value = '';

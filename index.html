@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20261104c">
+  <link rel="stylesheet" href="style.css?v=20261104d">
 </head>
 <body>
   <header class="site-header">
@@ -30,6 +30,12 @@
           <button class="category-pill" data-category="Family">Family</button>
           <button class="category-pill" data-category="Film">Film</button>
           <button class="category-pill" data-category="Community">Community</button>
+        </div>
+      </div>
+      <div class="filter-section">
+        <label>Price</label>
+        <div class="category-pills">
+          <button class="category-pill" id="free-only-btn" aria-pressed="false">Free only</button>
         </div>
       </div>
       <div class="filter-section">
@@ -58,12 +64,6 @@
       </div>
     </section>
 
-    <section class="free-days" id="free-days" aria-label="Upcoming free days">
-      <h2>Free Days <span class="free-days-sub">at Denver museums &amp; attractions</span></h2>
-      <div class="free-days-list" id="free-days-list"><p class="free-days-note" id="free-days-status">Loading free days…</p></div>
-      <p class="free-days-note">Check each venue's site before you go. Dates and rules can change.</p>
-    </section>
-
     <div class="events-header">
       <h2>Upcoming Events</h2>
       <span class="event-count" id="event-count">Loading…</span>
@@ -80,6 +80,6 @@
     </p>
   </footer>
 
-  <script src="app.js?v=20261104c"></script>
+  <script src="app.js?v=20261104d"></script>
 </body>
 </html>
