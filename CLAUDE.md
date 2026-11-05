@@ -27,6 +27,7 @@ denver-events/
 ├── app.js               # Data fetching, normalization, filtering, rendering
 ├── assets/
 │   └── header.jpg          # Header background (2400×1600px, user-chosen photo)
+├── free-days.json       # Hand-maintained free museum/attraction days (shown in Free Days row)
 ├── luma-events.json     # Static Lu.ma event cache (refreshed daily via GitHub Action)
 └── CLAUDE.md            # This file
 ```
@@ -134,7 +135,10 @@ Add recurring Denver events that don't appear in Ticketmaster/PredictHQ/Lu.ma �
 ### Free events flagging
 Add a way to identify and surface free events. Could be a "Free" filter pill and a badge on event cards. Sources would need to expose price/cost data; Ticketmaster includes `priceRanges[]` — events with no price ranges or a `$0` minimum could be auto-flagged. PredictHQ does not reliably expose pricing.
 
-### Free days at Denver public places
+### Free days at Denver public places (BUILT Nov 2026, first version)
+`free-days.json` holds entries `{venue, date (YYYY-MM-DD), time, note, url}`. `loadFreeDays()` in `app.js` shows those within the next 60 days (Denver time) in a `#free-days` section above the events list; it hides itself if none. Sources: scfd.org/find-culture/free-days, denverartmuseum.org/en/free-days-dam, UCHealth guide. Not yet on official venue sites for Zoo/DMNS/Botanic. Plains Conservation Center December date is disputed (Dec 10 vs 17), so omitted. History Colorado and MCA Denver not listed on SCFD. Update the file by hand as new dates are published (Botanic Gardens releases 3 months at a time).
+
+Original plan:
 Maintain a static list of Denver institutions that have periodic free admission days (e.g. Denver Art Museum first Saturdays, Denver Museum of Nature & Science, Botanic Gardens, etc.) and surface those on the relevant dates. Would live as a hand-maintained JSON or JS array since these schedules don't come from an API.
 
 ### Secure the API keys
